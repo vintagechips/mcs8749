@@ -1,0 +1,421 @@
+    1                   ;       DEMO8749 - MCS8749 PROGRAMING EXAMPLES
+    2                   ;       ASSEMBLE COMMAND IN WIN32-X64
+    3                   ;       MSDOS X8048 /L DEMO.ASM,DEMO,DEMO;
+    4                   ;
+    5                   ;       THANKS FOR PROVIDING COOL TOOLS
+    6                   ;       MSDOS.EXE (http://takeda-toshiya.my.coocan.jp/m
+    7                   ;       X8048.EXE (lost)
+    8                   ;
+    9                   ;       SEGMENT DEFINITION (MACHINE-DEPENDENT)
+   10 007F              SEGA       EQU      01111111B
+   11 00BF              SEGB       EQU      10111111B
+   12 00F7              SEGC       EQU      11110111B
+   13 00FE              SEGD       EQU      11111110B
+   14 00FB              SEGE       EQU      11111011B
+   15 00DF              SEGF       EQU      11011111B
+   16 00EF              SEGG       EQU      11101111B
+   17 00FD              SEGP       EQU      11111101B
+   18                   ;
+   19                   ;       NUMERIC IMAGE
+   20 0012              FON0       EQU      SEGA&SEGB&SEGC&SEGD&SEGE&SEGF
+   21 00B7              FON1       EQU      SEGB&SEGC
+   22 002A              FON2       EQU      SEGA&SEGB&SEGD&SEGE&SEGG
+   23 0026              FON3       EQU      SEGA&SEGB&SEGC&SEGD&SEGG
+   24 0087              FON4       EQU      SEGB&SEGC&SEGF&SEGG
+   25 0046              FON5       EQU      SEGA&SEGC&SEGD&SEGF&SEGG
+   26 0042              FON6       EQU      SEGA&SEGC&SEGD&SEGE&SEGF&SEGG
+   27 0037              FON7       EQU      SEGA&SEGB&SEGC
+   28 0002              FON8       EQU      SEGA&SEGB&SEGC&SEGD&SEGE&SEGF&SEGG
+   29 0006              FON9       EQU      SEGA&SEGB&SEGC&SEGD&SEGF&SEGG
+   30 0003              FONA       EQU      SEGA&SEGB&SEGC&SEGE&SEGF&SEGG
+   31 00C2              FONB       EQU      SEGC&SEGD&SEGE&SEGF&SEGG
+   32 005A              FONC       EQU      SEGA&SEGD&SEGE&SEGF
+   33 00A2              FOND       EQU      SEGB&SEGC&SEGD&SEGE&SEGG
+   34 004A              FONE       EQU      SEGA&SEGD&SEGE&SEGF&SEGG
+   35 004B              FONF       EQU      SEGA&SEGE&SEGF&SEGG
+   36 00FF              FONN       EQU      0FFH
+   37                   ;
+   38                   ;       UPPER HALF IMAGE
+   39 00E3              TOP0       EQU      SEGC&SEGE&SEGG
+   40 00F7              TOP1       EQU      SEGC
+   41 00E6              TOP2       EQU      SEGC&SEGD&SEGG
+   42 00E6              TOP3       EQU      SEGC&SEGD&SEGG
+   43 00F2              TOP4       EQU      SEGC&SEGD&SEGE
+   44 00EA              TOP5       EQU      SEGD&SEGE&SEGG
+   45 00EA              TOP6       EQU      SEGD&SEGE&SEGG
+   46 00E7              TOP7       EQU      SEGC&SEGG
+   47 00E2              TOP8       EQU      SEGC&SEGD&SEGE&SEGG
+   48 00E2              TOP9       EQU      SEGC&SEGD&SEGE&SEGG
+   49 00E2              TOPA       EQU      SEGC&SEGD&SEGE&SEGG
+   50 00FA              TOPB       EQU      SEGD&SEGE
+   51 00EB              TOPC       EQU      SEGE&SEGG
+   52 00FA              TOPD       EQU      SEGD&SEGE
+   53 00EA              TOPE       EQU      SEGD&SEGE&SEGG
+   54 00EA              TOPF       EQU      SEGD&SEGE&SEGG
+   55                   ;
+   56                   ;       LOWER HALF IMAGE
+   57 008F              BOT0       EQU      SEGB&SEGF&SEGG
+   58 00BF              BOT1       EQU      SEGB
+   59 004F              BOT2       EQU      SEGA&SEGF&SEGG
+   60 002F              BOT3       EQU      SEGA&SEGB&SEGG
+   61 003F              BOT4       EQU      SEGA&SEGB
+   62 002F              BOT5       EQU      SEGA&SEGB&SEGG
+   63 000F              BOT6       EQU      SEGA&SEGB&SEGF&SEGG
+   64 00BF              BOT7       EQU      SEGB
+   65 000F              BOT8       EQU      SEGA&SEGB&SEGF&SEGG
+   66 002F              BOT9       EQU      SEGA&SEGB&SEGG
+   67 001F              BOTA       EQU      SEGA&SEGB&SEGF
+   68 000F              BOTB       EQU      SEGA&SEGB&SEGF&SEGG
+   69 00CF              BOTC       EQU      SEGF&SEGG
+   70 000F              BOTD       EQU      SEGA&SEGB&SEGF&SEGG
+   71 004F              BOTE       EQU      SEGA&SEGF&SEGG
+   72 005F              BOTF       EQU      SEGA&SEGF
+   73                   ;
+   74                   ;       RESET VECTOR
+   75 0000                         ORG      00H
+   76 0000 2400                    JMP      INIT        ; JUMP MAIN ROUTINE
+   77                   ;
+   78                   ;       EXTERNAL INTERRUPT VECTOR
+   79 0003                         ORG      03H
+   80 0003 93                      RETR                 ; DO NOTHING
+   81                   ;
+   82                   ;       TIMER INTERRUPT VECTOR
+   83 0007                         ORG      07H
+   84 0007 2455                    JMP      TINT
+   85                   ;
+   86                   ;       DELY
+   87                   ;       WAIT UNTIL TICK COUNTS MATCH
+   88                   ;       R2: TICK COUNT (INCREMENTED BY 45Hz)
+   89 0009 B820         DLAY:      MOV      R0,#TICK    ; TICK POINTER
+   90 000B B000                    MOV      @R0,#00H    ; CLEAR TICK
+   91 000D FA           L002       MOV      A,R2        ; GET PARAM
+   92 000E 1414                    CALL     PTON        ; CONVERT TO NEGATIVE
+   93 0010 60                      ADD      A,@R0       ; SAME AS SUBTRACTION
+   94 0011 E60D                    JNC      L002        ; WAIT FOR TICK > R2
+   95 0013 93                      RETR
+   96                   ;
+   97                   ;       PTON
+   98                   ;       CONVERT POSITIVE TO NEGATIVE
+   99                   ;       A: NUMERIC
+  100 0014 37           PTON:      CPL      A           ; CONVERT STEP1
+  101 0015 17                      INC      A           ; CONVERT STEP2
+  102 0016 93                      RETR
+  103                   ;
+  104                   ;       BADD
+  105                   ;       BINARY ADDITION
+  106                   ;       R1: 2 BYTES AUGEND POINTER
+  107                   ;       R2: ADDEND
+  108 0017 FA           BADD:      MOV      A,R2
+  109 0018 61                      ADD      A,@R1
+  110 0019 A1                      MOV      @R1,A
+  111 001A E61E                    JNC      L014
+  112 001C C9                      DEC      R1
+  113 001D 11                      INC      @R1
+  114 001E 93           L014       RETR
+  115                   ;
+  116                   ;       BSUB
+  117                   ;       BINARY SUBTRACTION
+  118                   ;       R1: 2 BYTES MINUEND POINTER
+  119                   ;       R2: SUBTRAHEND
+  120 001F FA           BSUB:      MOV      A,R2
+  121 0020 1414                    CALL     PTON
+  122 0022 61                      ADD      A,@R1
+  123 0023 A1                      MOV      @R1,A
+  124 0024 F62A                    JC       L015
+  125 0026 C9                      DEC      R1
+  126 0027 F1                      MOV      A,@R1
+  127 0028 07                      DEC      A
+  128 0029 A1                      MOV      @R1,A
+  129 002A 93           L015       RETR
+  130                   ;
+  131                   ;       DADD
+  132                   ;       DECIMAL ADDITION
+  133                   ;       R1: LOWER OF 2 BYTES AUGEND POINTER
+  134                   ;       R2: ADDEND
+  135 002B FA           DADD:      MOV      A,R2        ; GET ADDEND
+  136 002C 61                      ADD      A,@R1       ; ADD LOWER AUGEND
+  137 002D 57                      DA       A           ; DECIMAL ADJUST
+  138 002E A1                      MOV      @R1,A       ; STORE RESULT
+  139 002F E637                    JNC      L011        ; IF NOT CARRY, RETURN
+  140 0031 C9                      DEC      R1          ; UPPER BYTE
+  141 0032 2301                    MOV      A,#1        ; GET 1
+  142 0034 61                      ADD      A,@R1       ; ADD UPPER AUGEND
+  143 0035 57                      DA       A           ; DECIMAL ADJUST
+  144 0036 A1                      MOV      @R1,A       ; STORE RESULT
+  145 0037 93           L011       RETR
+  146                   ;
+  147                   ;       DSUB
+  148                   ;       DECIMAL SUBTRACTION
+  149                   ;       R1: LOWER OF 2 BYTES MINUEND POINTER
+  150                   ;       R2: SUBTRAHEND
+  151 0038 FA           DSUB:      MOV      A,R2        ; GET SUBTRAHEND
+  152 0039 1414                    CALL     PTON        ; CONVERT POSITIVE TO N
+  153 003B 039A                    ADD      A,#9AH      ; ADD MAGIC NUMBER
+  154 003D 61                      ADD      A,@R1       ; SUBTRACT LOWER MINUEN
+  155 003E 57                      DA       A           ; DECIMAL ADJUST
+  156 003F A1                      MOV      @R1,A       ; STORE RESULT
+  157 0040 F648                    JC       L013        ; IF CARRY, RETURN
+  158 0042 C9                      DEC      R1          ; UPPER BYTE
+  159 0043 2399                    MOV      A,#99H      ; MAGIC NUMBER
+  160 0045 61                      ADD      A,@R1       ; ADD UPPER MINUEND
+  161 0046 57                      DA       A           ; DECIMAL ADJUST
+  162 0047 A1                      MOV      @R1,A       ; STORE RESULT
+  163 0048 93           L013       RETR
+  164                   ;
+  165                   ;       DCHG
+  166                   ;       DISPLAY CHANGE BY TEMPORARY IMAGE
+  167 0049 B825         DCHG:      MOV      R0,#TIMG    ; TEMPORARY IMAGE POINT
+  168 004B B921                    MOV      R1,#VRAM    ; VRAM BASE ADDRESS
+  169 004D BF04                    MOV      R7,#4       ; DIGIT COUNTER (4 TO 1
+  170 004F FE                      MOV      A,R6        ; COPY STEP 1
+  171 0050 AD                      MOV      R5,A        ; COPY STEP 2
+  172 0051 FD           L005       MOV      A,R5        ; GET UPDATE FLAG
+  173 0052 67                      RRC      A           ; CHECK LSB
+  174 0053 AD                      MOV      R5,A        ; SAVE FOR NEXT
+  175 0054 E658                    JNC      L006        ; IF LSB=0, DO NOTHING
+  176 0056 F0                      MOV      A,@R0       ; GET TEMPORARY IMAGE
+  177 0057 A1                      MOV      @R1,A       ; SAVE IT VRAM
+  178 0058 18           L006       INC      R0          ; NEXT TEMPORARY IMAGE
+  179 0059 19                      INC      R1          ; NEXT VRAM ADDRESS
+  180 005A EF51                    DJNZ     R7,L005     ; LOOP DIGIT 4 TO 1
+  181 005C 93                      RETR
+  182                   ;
+  183                   ;       PUTN
+  184                   ;       DISPLAY NUMERIC
+  185 005D B821         PUTN:      MOV      R0,#VRAM    ; VRAM POINTER
+  186 005F B929                    MOV      R1,#NNOW    ; NUMERIC POINTER
+  187 0061 BA24                    MOV      R2,#FTBL    ; FONT TABLE
+  188 0063 BB77                    MOV      R3,#TPNC    ; COMMAND TABLE
+  189                   ;
+  190                   ;       NTOI
+  191                   ;       NUMERIC TO IMAGE
+  192 0065 BF04         NTOI:      MOV      R7,#4       ; DIGIT COUNTER (4 TO 1
+  193 0067 1472         L007       CALL     BREN        ; BRANCH COMMAND FOR EA
+  194 0069 530F                    ANL      A,#0FH      ; GET DIGIT NUMBER
+  195 006B 6A                      ADD      A,R2        ; FONT TABLE LOOKUP
+  196 006C E3                      MOVP3    A,@A        ; GET FONT
+  197 006D A0                      MOV      @R0,A       ; STORE FONT
+  198 006E 18                      INC      R0          ; NEXT DIGIT
+  199 006F EF67                    DJNZ     R7,L007     ; LOOP
+  200 0071 93                      RETR
+  201                   ;
+  202                   ;       BREN
+  203                   ;       BRANCH COMMAND FOR EACH NIBBLE
+  204 0072 FF           BREN:      MOV      A,R7        ; GET DIGIT
+  205 0073 5301                    ANL      A,#01H      ; UPPER OR LOWER NIBBLE
+  206 0075 6B                      ADD      A,R3        ; COMMAND TABLE SETUP
+  207 0076 B3                      JMPP     @A          ; JUMP SUB COMMAND
+  208                   ;
+  209                   ;       PUTN SUB COMMAND VECTOR TABLE
+  210 0077 79           TPNC       DB       PNC1        ; UPPER NIBBLE
+  211 0078 7C                      DB       PNC2        ; LOWER NIBBLE
+  212                   ;
+  213                   ;       FOR UPPER NIBBLE
+  214 0079 F1           PNC1:      MOV      A,@R1       ; GET BYTE
+  215 007A 47                      SWAP     A           ; SWAP NIBBLE
+  216 007B 93                      RETR                 ; BACK
+  217                   ;
+  218                   ;       FOR LOWER NIBBLE
+  219 007C F1           PNC2:      MOV      A,@R1       ; GET BYTE
+  220 007D 19                      INC      R1          ; NEXT BYTE
+  221 007E 93                      RETR                 ; BACK
+  222                   ;
+  223                   ;       PUTS
+  224                   ;       CHANGE DISPLAY WITH ANIMATION
+  225 007F B82B         PUTS:      MOV      R0,#NNEW    ; NEW NUMBER
+  226 0081 B929                    MOV      R1,#NNOW    ; CURRENT NUMBER
+  227 0083 BBD9                    MOV      R3,#TPSC    ; COMMAND TABLE
+  228                   ;
+  229                   ;       SETUP UPDATE FLAG TO R6
+  230 0085 BE00                    MOV      R6,#00H     ; CLEAR FLAGS
+  231 0087 BF04                    MOV      R7,#4       ; DIGIT COUNTER (4 TO 1
+  232 0089 FE           L003       MOV      A,R6        ; ROTATE RIGHT STEP1
+  233 008A 77                      RR       A           ; ROTATE RIGHT STEP2
+  234 008B AE                      MOV      R6,A        ; ROTATE RIGHT STEP3
+  235 008C 1472                    CALL     BREN        ; BRANCH COMMAND FOR EA
+  236 008E 530F                    ANL      A,#0FH      ; GET COMPARE RESULT
+  237 0090 C696                    JZ       L004        ; IF EQUAL, DO NOTHING
+  238 0092 FE                      MOV      A,R6        ; BIT SET STEP1
+  239 0093 4308                    ORL      A,#08H      ; BIT SET STEP2
+  240 0095 AE                      MOV      R6,A        ; BIT SET STEP3
+  241 0096 EF89         L004       DJNZ     R7,L003     ; LOOP DIGIT 4 TO 1
+  242                   ;
+  243                   ;       FLAME OUT
+  244 0098 B825                    MOV      R0,#TIMG    ; TEMPORARY IMAGE POINT
+  245 009A B929                    MOV      R1,#NNOW    ; NUMERIC POINTER
+  246 009C BA04                    MOV      R2,#LTBL    ; FONT TABLE POINTER
+  247 009E BB77                    MOV      R3,#TPNC    ; COMMAND TABLE
+  248 00A0 1465                    CALL     NTOI        ; SETUP TEMPORARY IMAGE
+  249 00A2 1449                    CALL     DCHG        ; DISPLAY CHANGE BY TEM
+  250 00A4 BA04                    MOV      R2,#4       ; FOR 4/45 SEC,
+  251 00A6 1409                    CALL     DLAY        ; MAINTAIN DISPLAY
+  252                   ;
+  253                   ;       BLANK
+  254 00A8 BF04                    MOV      R7,#4
+  255 00AA B921                    MOV      R1,#VRAM    ; VRAM BASE ADDRESS
+  256 00AC FE                      MOV      A,R6        ; COPY STEP 1
+  257 00AD AD                      MOV      R5,A        ; COPY STEP 2
+  258 00AE FD           L008       MOV      A,R5        ; GET UPDATE FLAG
+  259 00AF 67                      RRC      A           ; CHECK LSB
+  260 00B0 AD                      MOV      R5,A        ; SAVE FOR NEXT
+  261 00B1 E6B5                    JNC      L012        ; IF LSB=0, DO NOTHING
+  262 00B3 B1FF                    MOV      @R1,#FONN   ; BLANK
+  263 00B5 19           L012       INC      R1          ; NEXT DIGIT
+  264 00B6 EFAE                    DJNZ     R7,L008     ; LOOP DIGIT 4 TO 1
+  265 00B8 BA08                    MOV      R2,#8       ; FOR 8/45 SEC,
+  266 00BA 1409                    CALL     DLAY        ; MAINTAIN DISPLAY
+  267                   ;
+  268                   ;       FLAME IN
+  269 00BC B825                    MOV      R0,#TIMG    ; TEMPORARY IMAGE POINT
+  270 00BE B92B                    MOV      R1,#NNEW    ; NEW NUMBER  POINTER
+  271 00C0 BA14                    MOV      R2,#UTBL    ; FONT TABLE POINTER
+  272 00C2 BB77                    MOV      R3,#TPNC    ; COMMAND TABLE
+  273 00C4 1465                    CALL     NTOI        ; SETUP TEMPORARY IMAGE
+  274 00C6 1449                    CALL     DCHG        ; DISPLAY CHANGE BY TEM
+  275 00C8 BA04                    MOV      R2,#4       ; FOR 4/45 SEC,
+  276 00CA 1409                    CALL     DLAY        ; MAINTAIN DISPLAY
+  277                   ;
+  278                   ;       UPDATE NUMERIC
+  279 00CC B829         UPDN:      MOV      R0,#NNOW    ; CURRENT NUMERIC POINT
+  280 00CE B92B                    MOV      R1,#NNEW    ; UPDATE NUMERIC POINTE
+  281 00D0 F1                      MOV      A,@R1       ; GET UPDATE NUMERIC
+  282 00D1 A0                      MOV      @R0,A       ; PUT CURRENT NUMERIC
+  283 00D2 18                      INC      R0          ; NEXT BYTE
+  284 00D3 19                      INC      R1          ; NEXT BYTE
+  285 00D4 F1                      MOV      A,@R1       ; GET UPDATE NUMERIC
+  286 00D5 A0                      MOV      @R0,A       ; PUT CURRENT NUMERIC
+  287 00D6 145D                    CALL     PUTN        ; DISPLAY NUMERIC
+  288 00D8 93                      RETR
+  289                   ;
+  290                   ;       PUTS SUB COMMAND VECTOR TABLE
+  291 00D9 DB           TPSC       DB       PSC1        ; UPPER NIBBLE
+  292 00DA E0                      DB       PSC2        ; LOWER NIBBLE
+  293                   ;
+  294                   ;       FOR UPPER NIBBLE
+  295 00DB F0           PSC1:      MOV      A,@R0       ; GET NEW NUMBER
+  296 00DC D1                      XRL      A,@R1       ; COMPARE CURRENT NUMBE
+  297 00DD AA                      MOV      R2,A        ; SAVE RESULT
+  298 00DE 47                      SWAP     A           ; SWAP NIBBLE
+  299 00DF 93                      RETR                 ; BACK
+  300                   ;
+  301                   ;       FOR LOWER NIBBLE
+  302 00E0 FA           PSC2:      MOV      A,R2        ; RESTORE COMPARE RESUL
+  303 00E1 18                      INC      R0          ; NEXT BYTE
+  304 00E2 19                      INC      R1          ; NEXT BYTE
+  305 00E3 93                      RETR                 ; BACK
+  306                   ;
+  307                   ;       MAIN ROUTINE
+  308 0100                         ORG      100H
+  309 0100 9A0F         INIT:      ANL      P2,#0FH     ; TURN OFF ALL DIGIT
+  310 0102 65                      STOP     TCNT        ; STOP TIMER
+  311 0103 00                      NOP                  ; CLEAR TIMER FLAG
+  312                   ;
+  313 0104 D5                      SEL      RB1         ; SELECT SUB RESISTER B
+  314 0105 B820                    MOV      R0,#TICK    ; SET TICK POINTER
+  315 0107 BF00                    MOV      R7,#0       ; INITIAL DIGIT NUMBER
+  316 0109 C5                      SEL      RB0         ; RESTORE RESISTER BANK
+  317                   ;
+  318 010A 25                      EN       TCNTI       ; ENABLE TIMER INTERRUP
+  319 010B 55                      STRT     T           ; START TIMER
+  320                   ;
+  321                   ;       INITIAL DISPLAY
+  322 010C B929                    MOV      R1,#NNOW    ; CURRENT NUMERIC POINT
+  323 010E B182                    MOV      @R1,#82H    ; SET 82H
+  324 0110 19                      INC      R1          ; NEXT DIGIT
+  325 0111 B143                    MOV      @R1,#43H    ; SET 43H
+  326 0113 145D                    CALL     PUTN        ; DISPLAY CURRENT NUMER
+  327 0115 BA2D                    MOV      R2,#45      ; FOR 45/45 SEC,
+  328 0117 1409                    CALL     DLAY        ; MAINTAIN DISPLAY
+  329                   ;
+  330                   ;       COUNT UP/DOWN
+  331 0119 B92B                    MOV      R1,#NNEW    ; UPDATE NUMERIC POINTE
+  332 011B B100                    MOV      @R1,#00H    ; SET 0
+  333 011D 19                      INC      R1          ; NEXT DIGIT
+  334 011E B100                    MOV      @R1,#00H    ; SET 0
+  335 0120 14CC                    CALL     UPDN        ; UPDATE NUMERIC
+  336 0122 1409         TEST:      CALL     DLAY        ; MAINTAIN DISPLAY
+  337 0124 B92C                    MOV      R1,#NNEW+1  ; LOWER OF 2 BYTES POIN
+  338 0126 BA05                    MOV      R2,#5       ; COUNT STEP
+  339 0128 2638                    JNT0     L016        ; IF T0 PUSHED, JUMP
+  340 012A BA01                    MOV      R2,#1       ; COUNT STEP
+  341 012C 4640                    JNT1     L017        ; IF T1 PUSHED, JUMP
+  342                   ;
+  343 012E 3448                    CALL     BLINK       ; 8243 P5,BIT1 CHANGE
+  344 0130 142B                    CALL     DADD        ; DECIMAL ADDITION
+  345 0132 147F                    CALL     PUTS        ; CHANGE DISPLAY WITH A
+  346 0134 BA2D                    MOV      R2,#45      ; FOR 45/45 SEC,
+  347 0136 2422                    JMP      TEST
+  348 0138 142B         L016       CALL     DADD        ; DECIMAL ADDITION
+  349 013A 14CC                    CALL     UPDN        ; UPDATE NUMERIC
+  350 013C BA01                    MOV      R2,#1       ; FOR 1/45 SEC,
+  351 013E 2422                    JMP      TEST
+  352 0140 1438         L017       CALL     DSUB        ; DECIMAL SUBTRACTION
+  353 0142 14CC                    CALL     UPDN        ; UPDATE NUMERIC
+  354 0144 BA05                    MOV      R2,#5       ; FOR 5/45 SEC,
+  355 0146 2422                    JMP      TEST
+  356                   ;
+  357                   ;       8243 P5/BIT1 CONTROL
+  358 0148 F1           BLINK:     MOV      A,@R1       ; GET UPDATE NUMERIC
+  359 0149 5301                    ANL      A,#01H      ; CHECK EVEN/ODD
+  360 014B C651                    JZ       L018
+  361 014D 230D                    MOV      A,#0DH      ; LED ON
+  362 014F 9D                      ANLD     P5,A        ; WRITE P5
+  363 0150 93                      RETR
+  364 0151 2302         L018       MOV      A,#02H      ; LED OFF
+  365 0153 8D                      ORLD     P5,A        ; WRITE P5
+  366 0154 93                      RETR
+  367                   ;
+  368                   ;       TIMER INTERRUPT SERVICE ROUTINE
+  369                   ;       DISPLAY VRAM IMAGE, AND COUNT UP TICK
+  370 0155 D5           TINT:      SEL      RB1         ; SELECT SUB RESISTER B
+  371 0156 2303                    MOV      A,#03H      ; USE LOWER 2 BITS
+  372 0158 5F                      ANL      A,R7        ; GET DIGIT NUMBER(0-3)
+  373 0159 AF                      MOV      R7,A        ; SAVE DIGIT NUMBER
+  374 015A 965D                    JNZ      L001        ; ONCE PER 4 TIMES,
+  375 015C 10                      INC      @R0         ; INCREMENT TICK
+  376                   ;
+  377 015D B921         L001       MOV      R1,#VRAM    ; VRAM BASE ADDRESS
+  378 015F 69                      ADD      A,R1        ; VRAM DIGIT POINTER
+  379 0160 A9                      MOV      R1,A        ; SET IT TO R1
+  380                   ;
+  381 0161 9A0F                    ANL      P2,#0FH     ; TURN OFF ALL DIGIT
+  382 0163 F1                      MOV      A,@R1       ; GET SEGMENT IMAGE
+  383 0164 39                      OUTL     P1,A        ; SET SEGMENT
+  384 0165 FF                      MOV      A,R7        ; RESTORE DIGIT NUMBER
+  385 0166 0300                    ADD      A,#DTBL&0FFH ; DIGIT CONTROLL BASE 
+  386 0168 E3                      MOVP3    A,@A        ; GET DIGIT CONTROL
+  387 0169 3A                      OUTL     P2,A        ; DIGIT ON
+  388                   ;
+  389 016A 42                      MOV      A,T         ; GET TIMER COUNT
+  390 016B 03CC                    ADD      A,#204      ; 180Hz, FOR SOME REASO
+  391 016D 62                      MOV      T,A         ; SET TIMER COUNT
+  392 016E 1F                      INC      R7          ; INCREMENT DIGIT FOR N
+  393 016F 93                      RETR                 ; EXIT INTERRUPT
+  394                   ;
+  395 0300                         ORG      300H
+  396                   ;       DIGIT CONTROLL TABLE
+  397 0300 80402010     DTBL       DB       80H,40H,20H,10H
+  398                   ;
+  399                   ;       SEGMENT IMAGE TABLE
+  400 0304 8FBF4F2F     LTBL       DB       BOT0, BOT1, BOT2, BOT3
+  401 0308 3F2F0FBF                DB       BOT4, BOT5, BOT6, BOT7
+  402 030C 0F2F1F0F                DB       BOT8, BOT9, BOTA, BOTB
+  403 0310 CF0F4F5F                DB       BOTC, BOTD, BOTE, BOTF
+  404 0314 E3F7E6E6     UTBL       DB       TOP0, TOP1, TOP2, TOP3
+  405 0318 F2EAEAE7                DB       TOP4, TOP5, TOP6, TOP7
+  406 031C E2E2E2FA                DB       TOP8, TOP9, TOPA, TOPB
+  407 0320 EBFAEAEA                DB       TOPC, TOPD, TOPE, TOPF
+  408 0324 12B72A26     FTBL       DB       FON0, FON1, FON2, FON3
+  409 0328 87464237                DB       FON4, FON5, FON6, FON7
+  410 032C 020603C2                DB       FON8, FON9, FONA, FONB
+  411 0330 5AA24A4B                DB       FONC, FOND, FONE, FONF
+  412                   ;
+  413                   ;       VARIABLES (RAM)
+  414 0020                         ORG      20H
+  415 0020              TICK       DS       1           ; INCREMENT 45/SEC
+  416 0021              VRAM       DS       4           ; IMAGE
+  417 0025              TIMG       DS       4           ; TEMPORARY IMAGE
+  418 0029              NNOW       DS       2           ; NUMERIC
+  419 002B              NNEW       DS       2           ; NUMERIC FOR UPDATE
+  420                   ;
+  421 002D                         END
