@@ -316,9 +316,9 @@
   316                   ;
   317                   ;       INITIAL DISPLAY
   318 010C B929                    MOV      R1,#NNOW    ; CURRENT NUMERIC POINT
-  319 010E B182                    MOV      @R1,#82H    ; SET 82H
+  319 010E B187                    MOV      @R1,#87H    ; SET 87H
   320 0110 19                      INC      R1          ; NEXT DIGIT
-  321 0111 B143                    MOV      @R1,#43H    ; SET 43H
+  321 0111 B149                    MOV      @R1,#49H    ; SET 49H
   322 0113 145D                    CALL     PUTN        ; DISPLAY CURRENT NUMER
   323 0115 BA2D                    MOV      R2,#45      ; FOR 45/45 SEC,
   324 0117 1409                    CALL     DLAY        ; MAINTAIN DISPLAY
