@@ -125,7 +125,7 @@ void main(void) {
     NCO1CON = 0x00; // N1EN disabled; N1POL active_hi; N1PFM FDC_mode
     NCO1CLK = 0x01; // N1CKS FOSC; N1PWS 1_clk
     NCO1ACC = 0;
-    NCO1INC = 524288; // 6MHz
+    NCO1INC = 524288; // 6MHz(1048575/2)
     N1EN = 1; // Enable the NCO module
 
     // CWG1 Initialize
@@ -156,6 +156,7 @@ void main(void) {
     TMR1ON = 0;
     
     // External interrupt initialize
+    INTEDG = 0; // Falling edge
     INTF = 0; // Clear the interrupt flag   
     INTE = 1; // RA3 Interrupt enable
 
